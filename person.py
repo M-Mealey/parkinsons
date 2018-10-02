@@ -15,6 +15,7 @@ class Person:
     # list of vectors that represent the results from each test
     r1 = []
     r2 = []
+    rall = []
 
     def __init__(self, pInfo, prefix): 
         # creates a person object
@@ -36,20 +37,58 @@ class Person:
 
         r1 = self.analyzeData(file_1)
         r2 = self.analyzeData(file_2)
+        rall=r1+r2
+        print rall
+
 
 
 
 
     def analyzeData(self, file):
+        result = []
         data = NqDataLoader()
         data.loadDataFile(file)
         window = []
-        w_num = 0
+        num_windows =int( (data.dataTimeEnd[len(data.dataTimeEnd)-1] //90)+1)
+        print "number of windows: ",num_windows
         i=0
-        while data.dataTimeEnd[i]< w_num*90:
-            window.append( [data.dataKeys[i], data.dataHT[i], data.dataFT[i], data.dataTimeStart[i], data.dataTimeEnd[i] ])
-            i=i+1
-        print window
+        for w_num in range(0,num_windows):
+            while i<len(data.dataTimeEnd) and data.dataTimeEnd[i]< w_num*90+90 :
+                window.append( [data.dataKeys[i], data.dataHT[i], data.dataFT[i], data.dataTimeStart[i], data.dataTimeEnd[i] ])
+                i=i+1
+            if len(window)>=30: #make sure there's enough data
+                result.append(self.analyzeWindow(window)) #create stat vector, add it to list
+            window=[] #reset the list
+        return result
+
+
+    def analyzeWindow(self, window):
+        # window is a 2d array, each row has key, HT, FT, time start, time end
+        win=np.array(window)
+        hts = win[:,1]
+        hts = hts.astype(np.float)
+        v0 = self.num_outliers(hts)/len(hts)
+        v1 = (np.percentile(hts,50)-np.percentile(hts,25))/(np.percentile(hts,75)-np.percentile(hts,25))
+        v2 = win[1][3].astype(np.float)-win[0][4].astype(np.float)
+        if v2<0:
+            v2=0
+        hist =  np.histogram(hts, bins=[0, 0.25, 0.5, 0.75, 1])[0]
+        return [v0,v1,v2,hist[0],hist[1],hist[2],hist[3]]
+
+    def num_outliers(self, data):
+        # https://gist.github.com/vishalkuo/f4aec300cf6252ed28d3
+        # I will use the standard definition of an outlier, a value < q1 - 1.5IQR or > q3 + 1.5IQR
+        q3 = np.percentile(data,75)
+        q1 = np.percentile(data,25)
+        iqr = (q3-q1)* (1.5) #iqr is actually 1.5 * the iqr
+        uf = q3+iqr # upper fence
+        lf = q1-iqr # lower fence
+        outliers = 0
+        for i in data.tolist():
+            if i>uf or i<lf:
+                outliers += 1
+        return outliers
+
 
 
 
