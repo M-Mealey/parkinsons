@@ -25,20 +25,21 @@ class Person:
         # array as follows:
         # col 0    col 1    col 2    col 3    col 4    col 5    col 6        col 7    col 8
         # pID      gt       updrs108 afTap    sTap     nqScore  typingSpeed  file_1   file_2
-        pID=pInfo[0]
-        gt=pInfo[1]
-        updrs108=pInfo[2]
-        afTap=pInfo[3]
-        sTap=pInfo[4]
-        nqScore=pInfo[5]
-        typingSpeed=pInfo[6]
-        file_1 = prefix + pInfo[7]
-        file_2 = prefix + pInfo[8]
-
-        r1 = self.analyzeData(file_1)
-        r2 = self.analyzeData(file_2)
-        rall=r1+r2
-        print rall
+        self.pID=pInfo[0]
+        self.gt=pInfo[1]
+        self.updrs108=pInfo[2]
+        self.afTap=pInfo[3]
+        self.sTap=pInfo[4]
+        self.nqScore=pInfo[5]
+        self.typingSpeed=pInfo[6]
+        self.file_1 = prefix + pInfo[7]
+        self.r1 = self.analyzeData(self.file_1)
+        
+        if len(pInfo)>8 : # the second group of people only have 1 file
+            self.file_2 = prefix + pInfo[8]
+            self.r2 = self.analyzeData(self.file_2)
+        
+        self.rall=self.r1+self.r2
 
 
 
@@ -50,7 +51,6 @@ class Person:
         data.loadDataFile(file)
         window = []
         num_windows =int( (data.dataTimeEnd[len(data.dataTimeEnd)-1] //90)+1)
-        print "number of windows: ",num_windows
         i=0
         for w_num in range(0,num_windows):
             while i<len(data.dataTimeEnd) and data.dataTimeEnd[i]< w_num*90+90 :
@@ -89,6 +89,9 @@ class Person:
                 outliers += 1
         return outliers
 
+    def get_vecs(self):
+        print self.rall
+        return self.rall
 
 
 
