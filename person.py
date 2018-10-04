@@ -41,6 +41,12 @@ class Person:
         
         self.rall=self.r1+self.r2
 
+        # list of predictions
+        self.pred = []
+        self.avg=-1
+
+        print self.pID, " loaded"
+
 
 
 
