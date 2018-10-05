@@ -78,7 +78,7 @@ class Person:
         v2 = win[1][3].astype(np.float)-win[0][4].astype(np.float)
         if v2<0:
             v2=0
-        hist =  np.histogram(hts, bins=[0, 0.25, 0.5, 0.75, 1])[0]
+        hist =  np.histogram(hts, bins=[0, 0.125, 0.25, 0.375, 0.5])[0]
         return [v0,v1,v2,hist[0],hist[1],hist[2],hist[3]]
 
     def num_outliers(self, data):

@@ -1,8 +1,11 @@
 import numpy as np
 from nqDataLoader import NqDataLoader
 import sys, os, re, datetime
+import sklearn
 
 fileInTest = "MIT-CS1PD/data_MIT-CS1PD/1401114972.068_001_014.csv"
+
+print sklearn.__version__
 
 data = NqDataLoader()
 data.loadDataFile(fileInTest)

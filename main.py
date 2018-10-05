@@ -18,23 +18,32 @@ data = NqDataLoader()
 info1 = np.genfromtxt(h1, dtype=None, delimiter=",", skip_header=1)
 info2 = np.genfromtxt(h2, dtype=None, delimiter=",", skip_header=1)
 
-# normalize the UPDRS scores
-updrs = np.genfromtxt(h1, dtype=None, delimiter=",", skip_header=1, usecols=(2))
-updrs = updrs.reshape(1,-1)
+######## normalize the UPDRS scores#########
+# get lists for each group
+updrs1 = np.genfromtxt(h1, dtype=None, delimiter=",", skip_header=1, usecols=(2))
+updrs2 = np.genfromtxt(h2, dtype=None, delimiter=",", skip_header=1, usecols=(2))
+print updrs1
+print updrs2
+#combine lists & normalize
+updrs = updrs1.tolist() + updrs2.tolist()
+updrs = np.array(updrs).reshape(1,-1)
 updrs = normalize(updrs, norm='max')
 
+# update values with normalized values in raw info array
 for i in range(0,info1.shape[0]):
+    print "before: ",info1[i][2]
+    print updrs[0][i]
     info1[i][2] = updrs[0][i]
-
-# normalize the UPDRS scores
-updrs = np.genfromtxt(h2, dtype=None, delimiter=",", skip_header=1, usecols=(2))
-updrs = updrs.reshape(1,-1)
-updrs = normalize(updrs, norm='max')
+    print "after: ",info1[i][2]
 
 for i in range(0,info2.shape[0]):
-    info2[i][2] = updrs[0][i]
+    print "before: ",info2[i][2]
+    info2[i][2] = updrs[0][i+info1.shape[0]]
+    print "after: ",info2[i][2]
 
 
+
+####    creating "person" object for each person    ####    
 group1=[]
 for i in range(0,info1.shape[0]):
     group1.append(Person(info1[i],dir1))
@@ -44,12 +53,14 @@ for i in range(0,info2.shape[0]):
     group2.append(Person(info2[i],dir2))
 
 
-"""
+
 
 
 
 # sample size
-ss = 20 
+ss = 200
+
+random.seed(6)
 
 vectors = []
 scores = []
@@ -79,6 +90,6 @@ for person in group2:
         med = np.median(preds)
         person.pred.append(med)
     person.avg = sum(person.pred)/len(person.pred)
-    print person.pID,"\t",person.avg
+    print person.pID,"\t",person.avg, "\t",person.updrs108
 
-"""
+
