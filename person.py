@@ -45,7 +45,7 @@ class Person:
         self.pred = []
         self.avg=-1
 
-        print self.pID, " loaded"
+#        print self.pID, " loaded"
 
 
 
@@ -73,12 +73,13 @@ class Person:
         win=np.array(window)
         hts = win[:,1]
         hts = hts.astype(np.float)
-        v0 = self.num_outliers(hts)/len(hts)
+        v0 = (float)(self.num_outliers(hts))/len(hts)
         v1 = (np.percentile(hts,50)-np.percentile(hts,25))/(np.percentile(hts,75)-np.percentile(hts,25))
         v2 = win[1][3].astype(np.float)-win[0][4].astype(np.float)
         if v2<0:
             v2=0
-        hist =  np.histogram(hts, bins=[0, 0.125, 0.25, 0.375, 0.5])[0]
+        hist =  np.histogram(hts, bins=[0, 0.125, 0.25, 0.375, 0.5], normed=True, density=True)[0]
+        hist= hist/8
         return [v0,v1,v2,hist[0],hist[1],hist[2],hist[3]]
 
     def num_outliers(self, data):
