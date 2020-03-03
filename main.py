@@ -22,35 +22,22 @@ info2 = np.genfromtxt(h2, dtype=None, delimiter=",", skip_header=1)
 # get lists for each group
 updrs1 = np.genfromtxt(h1, dtype=None, delimiter=",", skip_header=1, usecols=(2))
 updrs2 = np.genfromtxt(h2, dtype=None, delimiter=",", skip_header=1, usecols=(2))
-#print updrs1
-#print updrs2
-#combine lists & normalize
+# combine lists & normalize
 updrs = updrs1.tolist() + updrs2.tolist()
 updrs = np.array(updrs).reshape(1,-1)
 updrs = normalize(updrs, norm='max')
-
-# update values with normalized values in raw info array
-for i in range(0,info1.shape[0]):
-#    print "before: ",info1[i][2]
-#    print updrs[0][i]
-    info1[i][2] = updrs[0][i]
-#    print "after: ",info1[i][2]
-
-for i in range(0,info2.shape[0]):
-#    print "before: ",info2[i][2]
-    info2[i][2] = updrs[0][i+info1.shape[0]]
-#    print "after: ",info2[i][2]
-
-
+# separate lists back out
+updrs1 = updrs[0][0:info1.shape[0]]
+updrs2 = updrs[0][info1.shape[0]:]
 
 ####    creating "person" object for each person    ####    
 group1=[]
 for i in range(0,info1.shape[0]):
-    group1.append(Person(info1[i],dir1))
+    group1.append(Person(info1[i],dir1,updrs1[i]))
 
 group2=[]
 for i in range(0,info2.shape[0]):
-    group2.append(Person(info2[i],dir2))
+    group2.append(Person(info2[i],dir2,updrs2[i]))
 
 
 
@@ -58,35 +45,64 @@ for i in range(0,info2.shape[0]):
 
 
 # sample size
-ss = 5
+ss = 20
 
 random.seed(6)
 
 vectors = []
 scores = []
-models=[]
+g1models=[]
 
-#creates 200 models
+#creates 200 models trained on group 1
 for k in range(0,200):
     # gets the vectors and target values
     for i in range(0,ss):
         person = group1[random.randrange(0,len(group1))]
         scores.append(person.updrs108) #need to check if that's the target we want
         vec = random.randrange(0,len(person.rall))
-#        print person.rall[vec]
         vectors.append(person.rall[vec])
-
     m = SVR(kernel='linear', C=0.094, epsilon=0.052,verbose=False)
     m.fit(vectors,scores)
-    models.append(m)
+    g1models.append(m)
     vectors=[]
     scores=[]
 
+vectors = []
+scores = []
+g2models=[]
+
+#creates 200 models trained on group 1
+for k in range(0,200):
+    # gets the vectors and target values
+    for i in range(0,ss):
+        person = group2[random.randrange(0,len(group1))]
+        scores.append(person.updrs108) #need to check if that's the target we want
+        vec = random.randrange(0,len(person.rall))
+        vectors.append(person.rall[vec])
+    m = SVR(kernel='linear', C=0.094, epsilon=0.052,verbose=False)
+    m.fit(vectors,scores)
+    g2models.append(m)
+    vectors=[]
+    scores=[]
+
+
 # now predict using each model, median of predictions = score for vector, avg of all vector predictions = score for person
+print "\nGROUP 1 PREDICTIONS:"
+for person in group1:
+    for vec in person.rall:
+        preds = []
+        for m in g2models:
+            preds.append(m.predict([vec]))
+        med = np.median(preds)
+        person.pred.append(med)
+    person.avg = sum(person.pred)/len(person.pred)
+    print person.pID,"\t",person.avg, "\t",person.updrs108
+
+print "\nGROUP 2 PREDICTIONS:"
 for person in group2:
     for vec in person.rall:
         preds = []
-        for m in models:
+        for m in g1models:
             preds.append(m.predict([vec]))
         med = np.median(preds)
         person.pred.append(med)

@@ -5,7 +5,8 @@ from nqDataLoader import NqDataLoader
 class Person:
     pID=0
     gt=0
-    updrs108=0
+    updrs108_raw=0.0 #regular UPDRS score
+    updrs108=0.0 #normalzied UPDRS score
     afTap=0
     sTap=0
     nqScore=0
@@ -17,7 +18,7 @@ class Person:
     r2 = []
     rall = []
 
-    def __init__(self, pInfo, prefix): 
+    def __init__(self, pInfo, prefix,updrs_normed): 
         # creates a person object
         # takes pInfo (patient info) as argument. This is a vector with the MIT patient information that is in their file. Should be in same order.
         # prefix = name of folder that holds patient files
@@ -27,13 +28,15 @@ class Person:
         # pID      gt       updrs108 afTap    sTap     nqScore  typingSpeed  file_1   file_2
         self.pID=pInfo[0]
         self.gt=pInfo[1]
-        self.updrs108=pInfo[2]
+        self.updrs108_raw=pInfo[2]
+        updrs = updrs_normed
         self.afTap=pInfo[3]
         self.sTap=pInfo[4]
         self.nqScore=pInfo[5]
         self.typingSpeed=pInfo[6]
         self.file_1 = prefix + pInfo[7]
         self.r1 = self.analyzeData(self.file_1)
+
         
         if len(pInfo)>8 : # the second group of people only have 1 file
             self.file_2 = prefix + pInfo[8]
@@ -45,7 +48,6 @@ class Person:
         self.pred = []
         self.avg=-1
 
-#        print self.pID, " loaded"
 
 
 
@@ -79,7 +81,7 @@ class Person:
         if v2<0:
             v2=0
         hist =  np.histogram(hts, bins=[0, 0.125, 0.25, 0.375, 0.5], normed=True, density=True)[0]
-        hist= hist/8
+        hist= hist/8 # for some reason the histogram it gives me adds up to 8 
         return [v0,v1,v2,hist[0],hist[1],hist[2],hist[3]]
 
     def num_outliers(self, data):
